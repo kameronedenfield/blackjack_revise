@@ -12,11 +12,20 @@ class Player
 	end
 
 	def total
-		@total
+		total = 0
+		@hand.each do |card|
+			total+= card.value
+		end
+		@total = total
 	end
 
 	def hand
 		@hand
+	end
+
+	def reset
+		@hand = []
+		@total = 0
 	end
 
 	def money
@@ -26,29 +35,10 @@ class Player
 	def hit
 		@hand << @game.deck.pop
 	end
-
-	def bust?(total)
-		total > 21		
-	end
-
-	def blackjack?(total)
-		total == 21 
-	end
-
-	def player_wins_round?(d_total, p_total)
-		p_total < 22 && d_total <= p_total 	
-	end
-
-	def player_wins_round(d_total, p_total)
-		puts "-------" * 10
-		puts "-------" * 10
-		puts "		YOU WIN THE ROUND!!!"
-		puts "		Dealer: #{d_total} ||| Player: #{p_total}"	
-	end
-
-	def display_money(bet,money)
+	
+	def display_money(bet)
 		puts "			You win #{bet}"
-		puts "			Bank: #{money}"
+		puts "			Bank: #{@money}"
 		puts "-------" * 10
 		puts "-------" * 10
 	end
@@ -66,14 +56,15 @@ class Player
 		exit(0)
 	end
 
-	def display_player_total
-		@display_player_total
-		
+	def display_card
 		@hand.each do |card|
 			puts "          ***CARD***: #{card.display} with #{card.value} points"
 		end
+	end
+
+	def display_total
 		@total = 0
-		hand.each do |card|
+		@hand.each do |card|
 			@total+= card.value
 		end
 								

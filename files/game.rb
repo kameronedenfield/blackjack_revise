@@ -15,7 +15,11 @@ class Game
 	end
 
 	def total
-		@total
+		total = 0
+		@hand.each do |card|
+			total+= card.value
+		end
+		@total = total
 	end
 
 	def player
@@ -26,7 +30,45 @@ class Game
 		@dealer
 	end
 
+	def bust?
+		@player.total > 21	
+	end
+
+	def dealer_bust?
+		@dealer.total > 21	
+	end
+
+	def blackjack?
+		@player.total == 21 
+	end
+
+	def dealer_blackjack?
+		@dealer.total == 21 
+	end
+
+
+	def player_wins_round?
+		@player.total < 22 && @dealer.total <= @player.total	
+	end
+
+	def player_wins_round
+		puts "-------" * 10
+		puts "-------" * 10
+		puts "		YOU WIN THE ROUND!!!"
+		puts "		Dealer: #{@dealer.total} ||| Player: #{@player.total}"	
+	end
 	
+
+	def dealer_wins_round? 
+		@dealer.total < 22 && @dealer.total > @player.total
+	end
+
+	def dealer_wins_round
+		puts "-------" * 10
+		puts "-------" * 10
+		puts "		DEALER WINS THE ROUND!" 
+		puts "		Dealer: #{@dealer.total} ||| Player: #{@player.total}"	
+	end
 
 	# def save(money,deck)
 	# save_hash = {"deck" => deck, "money" => money}
@@ -72,12 +114,11 @@ class Game
 			
 			@bet = gets.to_i
 
+			@dealer.reset
+			@player.reset
+
 			if @bet > 0 && @bet <= @money
-				
-				# @player_total = 0
-				# @dealer_total = 0
-				# @dealer_hand = []
-				# @hand = []
+			
 			
 				puts ' ' * 20
 				puts "                         Dealing..."
@@ -92,23 +133,18 @@ class Game
 				@player.hit
 
 				#display
-				@player.display_player_total
+				@player.display_card
+
+				@player.display_total
 				
 				# hit dealer
-				dealer.hit_dealer(@dealer_total, @dealer_hand, @deck)
+				@dealer.hit
 				
 				#display
-				dealer.display_dealer_total(@dealer_hand, @dealer_total)
+				@dealer.display_card
 
-				#keep track of total
-				@hand.each do |card|
-						@player_total+= card.value
-					end
-				
-				#keep track of total	
-				@dealer_hand.each do |card|
-					@dealer_total+= card.value
-				end
+				puts @dealer.display_total
+
 
 			else 
 				puts '!' * 20
@@ -144,47 +180,39 @@ class Game
 					puts '                        ------------' 
 					
 					#deals 1 card to player 
-					player.hit(@hand, @deck)
+					@player.hit
 
 					#displays player cards and total points
-					player.display_player_total(@hand, @player_total)
+					@player.display_card
+
+					@player.display_total
 
 					#deals 1 card to dealer 
-					dealer.hit_dealer(@dealer_total, @dealer_hand, @deck)
+					@dealer.hit
 
-					#displays dealer cards total points
-					dealer.display_dealer_total(@dealer_hand, @dealer_total)
+					#display
+					@dealer.display_card
 
-					@player_total = 0
-					@dealer_total = 0
+					puts @dealer.display_total
 
-					#keep track of total
-					@hand.each do |card|
-						@player_total+= card.value
-					end
-
-					#keep track of total
-					@dealer_hand.each do |card|
-						@dealer_total+= card.value
-					end
 
 					#check for bust or blackjack (how can I make only one of these happen - e.g. it's possible for player to get Blackjack AND dealer to bust at the same time - this results in double win right now - not good)
-					if player.bust?(@player_total) || dealer.dealer_blackjack?(@dealer_total)
+					if bust? || dealer_blackjack?
 						# puts "-------" * 10
 						# puts "-------" * 10
 						# puts "                       >>BUST!!<<"
-						dealer.dealer_wins_round(@dealer_total, @player_total)
+						dealer_wins_round
 						@money -= @bet
-						dealer.display_money(@bet,@money)
+						@dealer.display_money(@bet, @money)
 						round = "end"
 							
-					elsif dealer.dealer_bust?(@dealer_total) || player.blackjack?(@player_total)
+					elsif dealer_bust? || blackjack?
 						# puts "-------" * 10
 						# puts "-------" * 10
 						# puts "                     >>DEALER BUST!!!<<"
-						player.player_wins_round(@dealer_total, @player_total)
+						player_wins_round
 						@money += @bet
-						player.display_money(@bet,@money)
+						@player.display_money(@bet)
 						round = "end"		
 					end
 						
@@ -200,70 +228,65 @@ class Game
 					puts '                        ------------' 
 					
 					#displays player cards and total points
-					player.display_player_total(@hand, @player_total)
+					@player.display_card
+
+					@player.display_total
 			
 					#deals card and displays
-					dealer.hit_dealer(@dealer_total, @dealer_hand, @deck)
+					dealer.hit
 					
-					#gives dealer total
-					dealer.display_dealer_total(@dealer_hand, @dealer_total)
+					#display
+					@dealer.display_card
+
+					puts @dealer.display_total
 
 					
 					@player_total = 0
 					@dealer_total = 0
 
-					#keep track of total
-					@hand.each do |card|
-						@player_total+= card.value
-					end
-					
-					#keep track of total
-					@dealer_hand.each do |card|
-						@dealer_total+= card.value
-					end
 
 					#check for dealer bust or blackjack 
 
-					if dealer.dealer_bust?(@dealer_total)
+					if dealer_bust?
 						puts "-------" * 10
 						puts "-------" * 10
 						puts "                     >>DEALER BUST!!!<<"
-						player.player_wins_round(@dealer_total, @player_total)
+						player_wins_round
 						@money += @bet
-						player.display_money(@bet,@money)
+						@player.display_money(@bet)
 						round = "end"
 						
-					elsif dealer.dealer_blackjack?(@dealer_total)
+					elsif dealer_blackjack?
 						puts "-------" * 10
 						puts "-------" * 10
 						puts "  				>>DEALER GOT BLACKJACK!!<<"
-						dealer.dealer_wins_round(@dealer_total, @player_total)
+						dealer_wins_round
 						@money -= @bet
-						dealer.display_money(@bet,@money)
+						@dealer.display_money(@bet,@money)
 						round = "end"
 					end
 
 					#check for round win 
-					if player.player_wins_round?(@dealer_total, @player_total)
-						player.player_wins_round(@dealer_total, @player_total)
+					if player_wins_round?
+						player_wins_round
 						@money += @bet
-						player.display_money(@bet,@money)
+						@player.display_money(@bet)
 						round = "end"
 				
-					elsif dealer.dealer_wins_round?(@dealer_total, @player_total)
-						dealer.dealer_wins_round(@dealer_total, @player_total)
+					elsif dealer_wins_round?
+						@dealer.dealer_wins_round
 						@money -= @bet
-						dealer.display_money(@bet,@money)
+						@dealer.display_money(@bet,@money)
 						round = "end"
 					end
 					# puts YAML.load(@money)
 					# puts YAML.load(@deck)
 
-					puts "save or continue"
-					choice = gets.chomp.downcase
-					if choice == "save"
-						save(@money,@deck)
-					end
+					# puts "save or continue"
+					# choice = gets.chomp.downcase
+					# if choice == "save"
+					# 	save(@money,@deck)
+					# end
 
 				#catch all other input
 				else
@@ -273,12 +296,12 @@ class Game
 				end	
 
 				#check for game win
-				if player.player_wins_game?(@money)
-					player.player_wins_game_display
+				if @player.player_wins_game?(@money)
+					@player.player_wins_game_display
 				end
 
-				if dealer.dealer_wins_game? (@money)
-					dealer.dealer_wins_game_display
+				if @dealer.dealer_wins_game? (@money)
+					@dealer.dealer_wins_game_display
 				end
 			end
 		end
